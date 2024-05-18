@@ -17,6 +17,13 @@ builder.Host.UseSerilog((ctx, lc) =>
 
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+        builder.AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowAnyOrigin());
+});
 
 
 
@@ -30,6 +37,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace BookStoreApp.API.Data
 {
@@ -10,6 +11,7 @@ namespace BookStoreApp.API.Data
             Books = new HashSet<Book>();
         }
 
+        [Required]
         public int Id { get; set; }
         public string? FirstName { get; set; }
         public string? LasttName { get; set; }

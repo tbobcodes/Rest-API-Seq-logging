@@ -2,10 +2,8 @@
 
 namespace BookStoreApp.API.Models.Author
 {
-    public class GetAllAuthorsWithNoBooks
+    public class AuthorUpdateDTO : BaseDTO
     {
-        [Required]
-        public int Id { get; set; }
         [Required]
         [StringLength(50)]
         public string FirstName { get; set; }

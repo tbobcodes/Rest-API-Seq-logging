@@ -23,24 +23,21 @@ namespace BookStoreApp.API.Controllers
 
         // GET: api/<ValuesController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetAllAuthorsWithNoBooks>>> GetAllAuthors()
+        public async Task<ActionResult<IEnumerable<AuthorReadOnlyDTO>>> GetAllAuthors()
         {
-            var authors = await _context.Authors.ToListAsync();
+            var authors = mapper.Map<IEnumerable<AuthorReadOnlyDTO>>(await _context.Authors.ToListAsync());
 
             if (authors == null)
             {
                 return NotFound();
             }
 
-            var allAuthorWithNoBooks = mapper.Map<GetAllAuthorsWithNoBooks>(authors);
-
-
             return Ok(authors);
         }
 
         // GET api/<ValuesController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<OneAuthorWithNoBooks>> GetOneAuthorWithNoBooks(int id)
+        public async Task<ActionResult<AuthorReadOnlyDTO>> GetOneAuthorWithNoBooks(int id)
         {
             var author = await _context.Authors.FindAsync(id);
 
@@ -49,9 +46,9 @@ namespace BookStoreApp.API.Controllers
                 return NotFound();
             }
 
-            var oneauthorDto = mapper.Map<OneAuthorWithNoBooks>(author);
+            var AuthorDto = mapper.Map<AuthorReadOnlyDTO>(author);
 
-            return Ok(oneauthorDto);
+            return Ok(AuthorDto);
         }
 
         // POST api/<ValuesController>
@@ -70,14 +67,22 @@ namespace BookStoreApp.API.Controllers
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAuthor(int id, [FromBody] Author author)
+        public async Task<IActionResult> PutAuthor(int id, [FromBody] AuthorUpdateDTO authorDto)
         {
-            if (id != author.Id)
+            if (id != authorDto.Id)
             {
                 return BadRequest();
             }
 
+            var author = await _context.Authors.FindAsync(id);
+
+            if (author == null) { 
+                return BadRequest();
+            }
+
+            mapper.Map(authorDto, author);
             _context.Entry(author).State = EntityState.Modified;
+
             await _context.SaveChangesAsync();
 
             return NoContent();

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+
 namespace BookStoreApp.API.Controllers
 {
     [Route("api/[controller]")]
@@ -14,52 +15,83 @@ namespace BookStoreApp.API.Controllers
     {
         private readonly BookAPIContext _context;
         private readonly IMapper mapper;
+        private readonly ILogger<AuthorsController> logger;
 
-        public AuthorsController(BookAPIContext context, IMapper mapper)
+        public AuthorsController(BookAPIContext context, IMapper mapper, ILogger<AuthorsController> logger)
         {
             _context = context;
             this.mapper = mapper;
+            this.logger = logger;
         }
 
         // GET: api/<ValuesController>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AuthorReadOnlyDTO>>> GetAllAuthors()
         {
-            var authors = mapper.Map<IEnumerable<AuthorReadOnlyDTO>>(await _context.Authors.ToListAsync());
-
-            if (authors == null)
+            try
             {
-                return NotFound();
+                var authors = mapper.Map<IEnumerable<AuthorReadOnlyDTO>>(await _context.Authors.ToListAsync());
+
+                if (authors == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(authors);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error Performing GET");
+                return StatusCode(500, "Internal server error");
             }
 
-            return Ok(authors);
         }
 
         // GET api/<ValuesController>/5
         [HttpGet("{id}")]
         public async Task<ActionResult<AuthorReadOnlyDTO>> GetOneAuthorWithNoBooks(int id)
         {
-            var author = await _context.Authors.FindAsync(id);
 
-            if (author == null)
+            AuthorReadOnlyDTO authorDto = null;
+            try
             {
-                return NotFound();
+                var author = await _context.Authors.FindAsync(id);
+
+                if (author == null)
+                {
+                    return NotFound();
+                }
+
+                authorDto = mapper.Map<AuthorReadOnlyDTO>(author);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error Performing GET");
+                return StatusCode(500, "Internal server error");
             }
 
-            var AuthorDto = mapper.Map<AuthorReadOnlyDTO>(author);
+            return Ok(authorDto);
 
-            return Ok(AuthorDto);
         }
 
         // POST api/<ValuesController>
         [HttpPost]
         public async Task<ActionResult<AuthorCreateDTO>> PostAuthor([FromBody] AuthorCreateDTO authorDTO)
         {
-            var author = mapper.Map<Author>(authorDTO);
-            _context.Authors.Add(author);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var author = mapper.Map<Author>(authorDTO);
+                _context.Authors.Add(author);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOneAuthorWithNoBooks), new { id = author.Id }, author);
+                return CreatedAtAction(nameof(GetOneAuthorWithNoBooks), new { id = author.Id }, author);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error Performing POST");
+                return StatusCode(500, "Internal server error");
+            }
+
         }
 
         //POST for sending info to server without books in there
@@ -69,39 +101,58 @@ namespace BookStoreApp.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAuthor(int id, [FromBody] AuthorUpdateDTO authorDto)
         {
-            if (id != authorDto.Id)
+            try
             {
-                return BadRequest();
+                var author = await _context.Authors.FindAsync(id);
+
+                if (author == null)
+                {
+                    return NotFound();
+                }
+
+                if (id != authorDto.Id)
+                {
+                    return BadRequest();
+                }
+
+                mapper.Map(authorDto, author);
+                _context.Entry(author).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error Performing PUT");
+                return StatusCode(500, "Internal server error");
             }
 
-            var author = await _context.Authors.FindAsync(id);
 
-            if (author == null) { 
-                return BadRequest();
-            }
-
-            mapper.Map(authorDto, author);
-            _context.Entry(author).State = EntityState.Modified;
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
         // DELETE api/<ValuesController>/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAuthor(int id)
         {
-            var author = await _context.Authors.FindAsync(id);
-            if (author == null)
+
+            try
             {
-                return NotFound();
+                var author = await _context.Authors.FindAsync(id);
+                if (author == null)
+                {
+                    return NotFound();
+                }
+
+                _context.Authors.Remove(author);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
             }
-
-            _context.Authors.Remove(author);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error Performing DELETE");
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }

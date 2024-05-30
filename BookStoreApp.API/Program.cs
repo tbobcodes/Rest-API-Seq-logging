@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using NSwag;
+using NSwag.Generation.Processors.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,13 +65,27 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+//NSwagg configuration
+builder.Services.AddOpenApiDocument(document =>
+{
+    document.DocumentName = "a";
+    document.Title = "First API Documentation";
+    // Additional configuration if needed
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Serve Swagger and ReDoc UI
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseReDoc();
+
+    // Serve NSwag documents
+    app.UseOpenApi(); // Same as app.UseSwagger()
+    app.UseReDoc(); // Serve ReDoc UI
 }
 
 app.UseHttpsRedirection();

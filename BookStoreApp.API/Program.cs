@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using NSwag;
 using NSwag.Generation.Processors.Security;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +63,37 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])) // Corrected
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var identity = context.Principal.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                // Log the claims for debugging
+                Console.WriteLine("Claims Identity:");
+                foreach (var claim in identity.Claims)
+                {
+                    Console.WriteLine($"- {claim.Type}: {claim.Value}");
+                }
+
+                // Remove the existing "Name" claim
+                var nameClaim = identity.FindFirst(ClaimTypes.Name);
+                if (nameClaim != null)
+                {
+                    identity.RemoveClaim(nameClaim);
+                }
+
+                // Map the "sub" claim to the "Name" claim type
+                var subClaim = identity.FindFirst("sub");
+                if (subClaim != null)
+                {
+                    identity.AddClaim(new Claim(ClaimTypes.Name, subClaim.Value));
+                }
+            }
+        }
     };
 });
 

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Blazored.LocalStorage;
 using BookStoreApp.Blazor.ServerUI.Services.Authentication;
 using BookStoreApp.Blazor.ServerUI.Providers;
+using BookStoreApp.Blazor.ServerUI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +23,12 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddHttpClient<IClient, Client>(cl => cl.BaseAddress = new Uri("https://localhost:7045"));
 
 
+
 //Authentication
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+builder.Services.AddScoped<IAuthorService, AuthorService>();
+
 builder.Services.AddScoped<ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(p =>
     p.GetRequiredService<ApiAuthenticationStateProvider>());

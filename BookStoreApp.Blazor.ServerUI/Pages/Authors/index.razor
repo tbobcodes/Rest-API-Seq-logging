@@ -1,8 +1,17 @@
-﻿@page "/authors/index"
+﻿@page "/authors/"
 
 @inject IAuthorService authorService
+@inject IClient httpClient
 
 <h3>index</h3>
+
+
+@if(response.Success == false)
+{
+    <div class="alert alert-danger">
+        <h4>@response.Message</h4>
+    </div>
+}
 
 @if(Authors == null)
 {

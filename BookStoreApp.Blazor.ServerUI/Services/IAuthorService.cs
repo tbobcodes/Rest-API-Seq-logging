@@ -5,5 +5,6 @@ namespace BookStoreApp.Blazor.ServerUI.Services
     public interface IAuthorService
     {
         Task<Response<List<AuthorReadOnlyDTO>>> GetAllAuthors();
+        Task<Response<int>> CreateAuthor(AuthorCreateDTO author);
     }
 }

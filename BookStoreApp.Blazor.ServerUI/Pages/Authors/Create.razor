@@ -1,0 +1,71 @@
+﻿@page "/authors/create"
+
+@inject IAuthorService authorService
+@inject NavigationManager navManager
+@inject IClient httpClient
+
+<h3>Create</h3>
+<EditForm Model="Author" OnValidSubmit="HandleCreateAuthor">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Firstname">First Name</label>
+        <InputText @bind-Value="Author.FirstName" class="form-control" id="firstname" />
+        <ValidationMessage For="@(() => Author.FirstName)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Lastname">Last Name</label>
+        <InputText @bind-Value="Author.LastName" class="form-control" id="lastname" />
+        <ValidationMessage For="@(() => Author.LastName)" />
+    </div>
+
+    <div class="form-group">
+        <label for="Bio">Biography</label>
+        <InputText @bind-Value="Author.Bio" class="form-control" id="bio" />
+        <ValidationMessage For="@(() => Author.Bio)" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">
+        <span class="oi oi-pencil"></span>
+        Create Author
+    </button>
+
+    <button @onclick="BackToList" class="btn btn-outline-secondary">
+        <span class="oi oi-media-skip-backward"></span>
+        Back To List
+    </button>
+</EditForm>
+
+@code {
+    private AuthorCreateDTO Author = new AuthorCreateDTO();
+
+    private async Task HandleCreateAuthor()
+    {
+        try
+        {
+            var response = await authorService.CreateAuthor(Author);
+            if (response.Success)
+            {
+                BackToList(); // Navigate back if the creation is successful
+            }
+            else
+            {
+                // Log the error message or show it in the UI if needed
+                Console.WriteLine($"Failed to create author: {response.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle any exceptions that might have been thrown by the service call
+            Console.WriteLine($"An error occurred while creating the author: {ex.Message}");
+        }
+    }
+
+
+    private void BackToList()
+    {
+        navManager.NavigateTo("/authors/");
+    }
+}
